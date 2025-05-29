@@ -277,6 +277,35 @@ jobs:
           sudo rm ${BASEDIR}/latest || true
           sudo ln -sf ${BASEDIR}/stable/${{ github.ref_name }} ${BASEDIR}/latest || exit 1
 
+  build-linux-arm64-port:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: arm64
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    - name: Build jellyfin executable for arm64
+      run: |
+        mkdir -p port/jellyfin
+        docker buildx build --platform linux/arm64 \
+          -f deployment/Dockerfile.debian \
+          --build-arg TAG=jammy \
+          --build-arg IMG=ubuntu \
+          --output type=local,dest=port/jellyfin \
+          deployment
+        # Move or rename the built executable if needed
+        if [ -f port/jellyfin/JellyfinMediaPlayer ]; then
+          mv port/jellyfin/JellyfinMediaPlayer port/jellyfin/jellyfin
+        fi
+    - name: Archive arm64 jellyfin executable
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-arm64-jellyfin
+        path: port/jellyfin/jellyfin
+
   build-debian:
     strategy:
       fail-fast: false
