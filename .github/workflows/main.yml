@@ -16,13 +16,19 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
     - uses: actions/checkout@v4
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: arm64
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
     - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install --yes gnupg debsigs devscripts
     - name: Docker Build
       run: |
-        docker build -f deployment/Dockerfile.debian -t builddeb --build-arg TAG=${{ matrix.tag }} --build-arg IMG=ubuntu deployment
+        docker buildx build --platform linux/arm64 -f deployment/Dockerfile.debian -t builddeb --build-arg TAG=${{ matrix.tag }} --build-arg IMG=ubuntu --output type=docker deployment
         docker run -v $(pwd)/deployment/dist:/dist -v $(pwd):/jellyfin -e TAG=${{ matrix.tag }} -e IMG=ubuntu builddeb
         sudo chown --recursive $USER $(pwd)/deployment/dist
     - name: Archive production artifacts

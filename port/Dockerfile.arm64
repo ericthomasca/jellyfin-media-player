@@ -1,0 +1,22 @@
+FROM --platform=linux/arm64 ubuntu:latest
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get install -y \
+      build-essential cmake ninja-build git wget unzip python3 sudo \
+      qtbase5-dev qt5-qmltooling-plugins qtwebengine5-dev \
+      libqt5x11extras5-dev libmpv-dev mpv \
+      libfreetype6-dev libxrandr-dev libvdpau-dev libva-dev \
+      libgl1-mesa-dev libdrm-dev libx11-dev libegl1-mesa-dev \
+      yasm libasound2-dev libpulse-dev zlib1g-dev libfribidi-dev \
+      gnutls-dev libglu1-mesa-dev libsdl2-dev libqwt-qt5-dev \
+      qtbase5-private-dev qtquickcontrols2-5-dev qml-module-qtquick-controls \
+      && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+COPY . .
+
+RUN mkdir -p build
+
+CMD bash -c "./BuildAndInstall.sh && cp /usr/local/bin/JellyfinMediaPlayer /output/jellyfin || true"
